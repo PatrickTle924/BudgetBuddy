@@ -10,7 +10,7 @@ export function TopBar() {
           <LineChart className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Glidepath</h1>
+          <h1 className="text-xl font-semibold tracking-tight">BudgetBuddy</h1>
           <p className="text-xs text-neutral-500">Your calendar-first money coach</p>
         </div>
       </div>

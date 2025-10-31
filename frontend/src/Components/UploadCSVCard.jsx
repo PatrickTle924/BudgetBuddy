@@ -18,7 +18,7 @@ export function UploadCSVCard({ onUpload }) {
               <Upload className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold">Upload your transactions (CSV)</h2>
+              <h2 className="text-blue-500 text-lg font-semibold">Upload your transactions (CSV)</h2>
               <p className="text-sm text-neutral-600">
                 Kickstart your forecast with 90–180 days of history.
               </p>
