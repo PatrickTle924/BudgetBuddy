@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { UploadCSVCard } from "./components/UploadCSVCard";
 import { SafeToSpendCard } from "./components/SafeToSpendCard";
@@ -8,12 +8,64 @@ import { WhatIfPanel } from "./components/WhatIfPanel";
 import { demoBalances } from "./data/demo_data";
 import './App.css'
 
-export default function App() {
-  const safeToSpend = 845;
-  const nextDip = "Thu, Nov 13";
+import {
+  uploadTransactionsCsv,
+  getOverview,
+  getForecast,
+  getActions,
+  simulateWhatIf,
+} from "./api";
 
-  function fakeUpload(file) {
-    alert(`Received file: ${file.name}. (MVP will POST /ingest/csv then show progress.)`);
+export default function App() {
+  const [overview, setOverview] = useState(null);
+  const [forecast, setForecast] = useState([]);   // [{date, balance}]
+  const [actions, setActions] = useState([]);
+  const [simResult, setSimResult] = useState(null);
+  const [loadingUpload, setLoadingUpload] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  async function loadAll() {
+    setLoading(true);
+    try {
+      const [ov, fc, ac] = await Promise.all([
+        getOverview(),
+        getForecast(12),
+        getActions(),
+      ]);
+      setOverview(ov);
+      setForecast(fc.points || []);
+      setActions(ac || []);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
+  async function handleUpload(file) {
+    if (!file) return;
+    setLoadingUpload(true);
+    try {
+      await uploadTransactionsCsv(file);
+      await loadAll();
+    } catch (e) {
+      console.error(e);
+      alert("Upload failed. Check console for details.");
+    } finally {
+      setLoadingUpload(false);
+    }
+  }
+
+  async function handleSimulate(query) {
+    try {
+      const res = await simulateWhatIf(query);
+      setSimResult(res);
+    } catch (e) {
+      console.error(e);
+      alert("Simulation failed.");
+    }
   }
 
   return (
@@ -23,17 +75,25 @@ export default function App() {
 
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
-            <UploadCSVCard onUpload={fakeUpload} />
+            <UploadCSVCard onUpload={handleUpload} isUploading={loadingUpload} />
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <SafeToSpendCard value={safeToSpend} nextDip={nextDip} />
-              <ForecastCard data={demoBalances} />
+              <SafeToSpendCard 
+                value={overview?.safeToSpend ?? 0}
+                nextDip={overview?.nextDipDate ?? null}
+                loading={loading}
+              />
+              <ForecastCard 
+                data={(forecast || []).map(p => p.balance)}
+                labels={(forecast || []).map(p => p.date)}
+                loading={loading} 
+              />
             </div>
           </div>
 
           <div className="md:col-span-1">
-            <ActionList />
+            <ActionList items={actions} loading={loading} />
             <div className="mt-6">
-              <WhatIfPanel />
+              <WhatIfPanel onSimulate={handleSimulate} result={simResult}/>
             </div>
           </div>
         </div>
