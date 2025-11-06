@@ -16,12 +16,12 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" className="hidden sm:inline-flex">
+        {/**<Button variant="outline" className="hidden sm:inline-flex">
           <ShieldCheck className="h-4 w-4" /> Privacy Controls
         </Button>
         <Button>
           <PlusCircle className="h-4 w-4" /> Add Account
-        </Button>
+        </Button>**/}
       </div>
     </div>
   );
